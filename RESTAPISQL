@@ -1,0 +1,67 @@
+from crypt import methods
+from unicodedata import name
+from flask import Flask, request, jsonify
+from flask_sqlalchemy import SQLAlchemy
+from flask_marshmallow import Marshmallow
+from  datetime import datetime
+
+
+#initiate flask app
+
+app = Flask(__name__)
+
+#set congigs
+
+app.config['SQLALCHEMY_DATABASE_URI']= "sqllite:/// database.db"
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS']= False
+
+#initiate DB object
+db = SQLAlchemy(app)
+# create Marshmellow object
+m = Marshmallow(app)
+
+
+#create database
+class extractdata(db.Model):
+    id = db.Columns(db.String(200), primary_key = True)
+    invoice_no = db.Columns(db.Integer, nullable = False)
+    company_name = db.Columns(db.String(400), nullable = False)
+    total_due = db.Columns(db.Integer, nullable = False)
+    due_date = db.Columns(db.DataTime, default = datetime.utcnow)
+    invoice_date = db.Columns(db.DataTime, default = datetime.utcnow)
+
+
+def __repr__(self):
+     return self.id
+
+#create extract data Schema
+class extractdataschema(ma.Schema):
+    class Meta:
+        fields = ('id','invoice_no', 'company_name','total_due','due_date','invoice_date')
+
+extractdata_schema = extractdataschema(many = False)
+extractdatas_schema = extractdataschema(many = True)
+
+
+#create extract data route
+@app.route("/extractdata", methods =["PUT"])
+def update_extract():
+   
+    
+        id = request.json['id']
+        invoice_no = request.json['invoice_no']
+        company_name = request.json['company_name']
+        total_due = request.json['total_due']
+        due_date = request.json['due_date']
+        invoice_date = request.json['invoice_date']
+        
+      
+        new_extract = extractdata(id = id, invoice_no = invoice_no, company_name = company_name, total_due = total_due,due_date = due_date,invoice_date= invoice_date )
+
+        db.create_session.commit()
+        return extractdata_schema.jsonify(new_extract)
+
+    
+if __name__== "__main__":
+        app.run(debug=True)
+
